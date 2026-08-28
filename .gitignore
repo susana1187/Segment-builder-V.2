@@ -1,0 +1,6 @@
+node_modules
+dist
+dist-share
+*.log
+.DS_Store
+segment-builder-v2/.git-unused-empty

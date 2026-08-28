@@ -1,0 +1,50 @@
+@font-face {
+  font-family: 'LiveRamp Sans';
+  src:
+    url('/fonts/LiveRampSans-Regular.woff2') format('woff2'),
+    url('/fonts/LiveRampSans-Regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Open Sans';
+  src: url('/fonts/OpenSans-Light-300.ttf') format('truetype');
+  font-weight: 300;
+}
+@font-face {
+  font-family: 'Open Sans';
+  src: url('/fonts/OpenSans-Regular-400.ttf') format('truetype');
+  font-weight: 400;
+}
+@font-face {
+  font-family: 'Open Sans';
+  src: url('/fonts/OpenSans-Medium-500.ttf') format('truetype');
+  font-weight: 500;
+}
+@font-face {
+  font-family: 'Open Sans';
+  src: url('/fonts/OpenSans-SemiBold-600.ttf') format('truetype');
+  font-weight: 600;
+}
+@font-face {
+  font-family: 'Open Sans';
+  src: url('/fonts/OpenSans-Bold-700.ttf') format('truetype');
+  font-weight: 700;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  font-family: 'Open Sans', 'LiveRamp Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
