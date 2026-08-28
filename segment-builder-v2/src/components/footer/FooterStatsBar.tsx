@@ -33,11 +33,11 @@ export function FooterStatsBar() {
       <IconButton size="small" aria-label="Refresh">
         <Refresh sx={{ fontSize: 18 }} />
       </IconButton>
-      <Stat value="--" label="Segment Size" />
+      <Stat value={stats.size} label="Segment Size" />
       <Stat value={stats.segments} label="Segments" />
       <Stat value={stats.rules} label="Rules" />
       <Stat value={stats.datasets} label="Datasets" />
-      <Stat value="$ --" label="CPM Cost" />
+      <Stat value={stats.cpm} label="CPM Cost" />
       <Box sx={{ flexGrow: 1 }} />
       <Button variant="text">Save for Later</Button>
       <Button variant="contained" color="success">

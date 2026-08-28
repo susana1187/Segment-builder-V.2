@@ -1,4 +1,15 @@
-import { DndContext, DragOverlay, PointerSensor, useSensor, useSensors, type DragEndEvent, type DragStartEvent } from '@dnd-kit/core'
+import {
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  pointerWithin,
+  rectIntersection,
+  useSensor,
+  useSensors,
+  type CollisionDetection,
+  type DragEndEvent,
+  type DragStartEvent,
+} from '@dnd-kit/core'
 import { useState } from 'react'
 import Box from '@liveramp/motif/core/Box'
 import { useActiveDraft, useSegment } from './SegmentContext'
@@ -14,6 +25,23 @@ import { CatalogLeafIcon } from '../components/catalog/catalogIcons'
 import { DraftTabs, SegmentNameField, DraftDetailsButton, AskAgentButton } from '../components/draft/DraftChrome'
 import { CanvasArea } from '../components/canvas/CanvasArea'
 import { FooterStatsBar } from '../components/footer/FooterStatsBar'
+
+// Zone and group drop targets are nested (a group sits inside its zone), so a pointer over a
+// group is also technically over the zone. Prefer the smallest (most specific) matching rect so
+// dropping on a group targets that group, while dropping on empty zone space targets the zone.
+const preferSmallestDroppable: CollisionDetection = (args) => {
+  const pointerCollisions = pointerWithin(args)
+  const collisions = pointerCollisions.length > 0 ? pointerCollisions : rectIntersection(args)
+  if (collisions.length <= 1) return collisions
+
+  return [...collisions].sort((a, b) => {
+    const rectA = args.droppableRects.get(a.id)
+    const rectB = args.droppableRects.get(b.id)
+    const areaA = rectA ? rectA.width * rectA.height : Infinity
+    const areaB = rectB ? rectB.width * rectB.height : Infinity
+    return areaA - areaB
+  })
+}
 
 function findRowInZone(zone: CanvasZone, rowId: string): SegmentRow | null {
   for (const item of zone.items) {
@@ -56,7 +84,12 @@ export function AppShell() {
   }
 
   return (
-    <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+    <DndContext
+      sensors={sensors}
+      collisionDetection={preferSmallestDroppable}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+    >
       <Box sx={{ display: 'flex', height: '100vh' }}>
         <IconRail />
         <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, minWidth: 0 }}>

@@ -137,7 +137,7 @@ export function DraftDetailsButton() {
   const hasContent = draft.include.items.length > 0 || draft.exclude.items.length > 0
 
   return (
-    <Button variant="text" size="small" disabled={!hasContent} startIcon={<BarChart sx={{ fontSize: 16 }} />}>
+    <Button variant="outlined" size="small" disabled={!hasContent} startIcon={<BarChart sx={{ fontSize: 16 }} />}>
       Draft Segment Details
     </Button>
   )

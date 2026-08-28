@@ -1,4 +1,4 @@
-import type { CanvasZone, CanvasZoneKind, SegmentDraft, SegmentRow } from '../types/segment'
+import type { CanvasZone, CanvasZoneKind, LogicOperator, SegmentDraft, SegmentRow } from '../types/segment'
 import { createEmptyDraft } from '../data/initialDrafts'
 
 function insertRow(zone: CanvasZone, row: SegmentRow, targetGroupId?: string): CanvasZone {
@@ -30,16 +30,8 @@ function insertRow(zone: CanvasZone, row: SegmentRow, targetGroupId?: string): C
     return { ...zone, items: [group], operators: [] }
   }
 
-  // Otherwise append into the last existing group, or start a new one.
-  const lastIndex = items.length - 1
-  const last = items[lastIndex]
-  if (last.kind === 'group') {
-    const newGroup = { ...last, children: [...last.children, row], operators: [...last.operators, 'or' as const] }
-    const newItems = [...items]
-    newItems[lastIndex] = newGroup
-    return { ...zone, items: newItems }
-  }
-
+  // Dropped on the zone itself (not a specific group) -> add as its own new top-level rule,
+  // joined to whatever's already there, rather than folding into an existing group.
   items.push(row)
   operators.push('or')
   return { ...zone, items, operators }
@@ -101,8 +93,15 @@ export type SegmentAction =
     }
   | { type: 'REMOVE_ROW'; draftId: string; zone: CanvasZoneKind; rowId: string }
   | { type: 'REMOVE_GROUP'; draftId: string; zone: CanvasZoneKind; groupId: string }
-  | { type: 'TOGGLE_ZONE_OPERATOR'; draftId: string; zone: CanvasZoneKind; index: number }
-  | { type: 'TOGGLE_GROUP_OPERATOR'; draftId: string; zone: CanvasZoneKind; groupId: string; index: number }
+  | { type: 'SET_ZONE_OPERATOR'; draftId: string; zone: CanvasZoneKind; index: number; operator: LogicOperator }
+  | {
+      type: 'SET_GROUP_OPERATOR'
+      draftId: string
+      zone: CanvasZoneKind
+      groupId: string
+      index: number
+      operator: LogicOperator
+    }
 
 function mapDraft(state: SegmentState, draftId: string, fn: (d: SegmentDraft) => SegmentDraft): SegmentState {
   return { ...state, drafts: state.drafts.map((d) => (d.id === draftId ? fn(d) : d)) }
@@ -179,22 +178,22 @@ export function segmentReducer(state: SegmentState, action: SegmentAction): Segm
       })
     }
 
-    case 'TOGGLE_ZONE_OPERATOR': {
+    case 'SET_ZONE_OPERATOR': {
       return mapDraft(state, action.draftId, (draft) => {
         const zone = draft[action.zone]
         const operators = [...zone.operators]
-        operators[action.index] = operators[action.index] === 'and' ? 'or' : 'and'
+        operators[action.index] = action.operator
         return { ...draft, [action.zone]: { ...zone, operators } }
       })
     }
 
-    case 'TOGGLE_GROUP_OPERATOR': {
+    case 'SET_GROUP_OPERATOR': {
       return mapDraft(state, action.draftId, (draft) => {
         const zone = draft[action.zone]
         const items = zone.items.map((item) => {
           if (item.kind !== 'group' || item.id !== action.groupId) return item
           const operators = [...item.operators]
-          operators[action.index] = operators[action.index] === 'and' ? 'or' : 'and'
+          operators[action.index] = action.operator
           return { ...item, operators }
         })
         return { ...draft, [action.zone]: { ...zone, items } }

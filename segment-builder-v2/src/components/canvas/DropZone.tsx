@@ -43,7 +43,7 @@ export function DropZone({ draft, zone }: { draft: SegmentDraft; zone: CanvasZon
             {index > 0 && (
               <OrOperatorToggle
                 value={zoneData.operators[index - 1]}
-                onToggle={() => dispatch({ type: 'TOGGLE_ZONE_OPERATOR', draftId: draft.id, zone, index: index - 1 })}
+                onChange={(operator) => dispatch({ type: 'SET_ZONE_OPERATOR', draftId: draft.id, zone, index: index - 1, operator })}
               />
             )}
             {item.kind === 'group' ? (
@@ -62,9 +62,9 @@ export function DropZone({ draft, zone }: { draft: SegmentDraft; zone: CanvasZon
         {zoneData.items.length > 0 && (
           <OrOperatorToggle
             value={zoneData.operators[zoneData.items.length - 1] ?? 'or'}
-            onToggle={() =>
+            onChange={(operator) =>
               zoneData.items.length > 1 &&
-              dispatch({ type: 'TOGGLE_ZONE_OPERATOR', draftId: draft.id, zone, index: zoneData.items.length - 1 })
+              dispatch({ type: 'SET_ZONE_OPERATOR', draftId: draft.id, zone, index: zoneData.items.length - 1, operator })
             }
           />
         )}

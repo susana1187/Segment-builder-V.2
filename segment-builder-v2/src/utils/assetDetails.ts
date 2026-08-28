@@ -1,4 +1,5 @@
 import type { CatalogLeaf } from '../types/catalog'
+import { hashSeed, estimateCpm } from './hash'
 
 export interface AssetOverviewRow {
   label: string
@@ -12,12 +13,6 @@ export interface AssetDetails {
   description: string
   iabCategories: string[][]
   overview: AssetOverviewRow[]
-}
-
-function hashSeed(id: string): number {
-  let h = 0
-  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0
-  return h
 }
 
 const TYPE_DESCRIPTIONS: Record<CatalogLeaf['type'], (label: string) => string> = {
@@ -62,7 +57,7 @@ export function buildAssetDetails(leaf: CatalogLeaf): AssetDetails {
   return {
     breadcrumb,
     isMarketplace,
-    cpm: isMarketplace ? `$${(1 + (seed % 20) / 10).toFixed(2)}` : undefined,
+    cpm: isMarketplace ? `$${estimateCpm(leaf.id, leaf.meta?.source)!.toFixed(2)}` : undefined,
     description: TYPE_DESCRIPTIONS[leaf.type](leaf.label),
     iabCategories,
     overview,

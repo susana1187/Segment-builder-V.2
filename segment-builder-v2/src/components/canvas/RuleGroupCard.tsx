@@ -36,7 +36,7 @@ export function RuleGroupCard({ group, draftId, zone }: { group: SegmentGroup; d
           {index > 0 && (
             <OrOperatorToggle
               value={group.operators[index - 1]}
-              onToggle={() => dispatch({ type: 'TOGGLE_GROUP_OPERATOR', draftId, zone, groupId: group.id, index: index - 1 })}
+              onChange={(operator) => dispatch({ type: 'SET_GROUP_OPERATOR', draftId, zone, groupId: group.id, index: index - 1, operator })}
             />
           )}
           <RuleRow
@@ -49,8 +49,8 @@ export function RuleGroupCard({ group, draftId, zone }: { group: SegmentGroup; d
       ))}
       <OrOperatorToggle
         value={group.operators[group.operators.length - 1] ?? 'or'}
-        onToggle={() =>
-          dispatch({ type: 'TOGGLE_GROUP_OPERATOR', draftId, zone, groupId: group.id, index: group.operators.length - 1 })
+        onChange={(operator) =>
+          dispatch({ type: 'SET_GROUP_OPERATOR', draftId, zone, groupId: group.id, index: group.operators.length - 1, operator })
         }
       />
     </Box>
