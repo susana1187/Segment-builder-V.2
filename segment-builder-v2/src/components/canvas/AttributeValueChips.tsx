@@ -10,7 +10,7 @@ export function AttributeValueChips({ operator, values }: { operator?: string; v
         {operator}
       </Box>
       {values.map((v) => (
-        <Chip key={v.id} label={v.label} size="small" />
+        <Chip key={v.id} label={v.label} size="small" sx={{ height: 20, fontSize: 11 }} />
       ))}
     </Box>
   )

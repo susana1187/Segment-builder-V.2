@@ -62,9 +62,9 @@ export function RuleRowContent({
       </Box>
       {row.meta && (
         <Box sx={{ display: 'flex', gap: 0.75, mt: 0.75, pl: 4.5 }}>
-          {row.meta.source && <Chip label={row.meta.source} size="small" />}
-          {row.meta.segmented && <Chip label="Pre-segmented" size="small" />}
-          {row.meta.size && <Chip label={`Size: ${row.meta.size}`} size="small" />}
+          {row.meta.source && <Chip label={row.meta.source} size="small" sx={{ height: 20, fontSize: 11 }} />}
+          {row.meta.segmented && <Chip label="Pre-segmented" size="small" sx={{ height: 20, fontSize: 11 }} />}
+          {row.meta.size && <Chip label={`Size: ${row.meta.size}`} size="small" sx={{ height: 20, fontSize: 11 }} />}
         </Box>
       )}
     </Box>
