@@ -66,6 +66,7 @@ export function AppShell() {
     const data = event.active.data.current as
       | { type: 'catalog-item'; payload: CatalogLeaf }
       | { type: 'canvas-row'; rowId: string; sourceZone: 'include' | 'exclude' }
+      | { type: 'canvas-group'; groupId: string; sourceZone: 'include' | 'exclude' }
       | undefined
     if (data?.type === 'catalog-item') {
       setActiveLeaf(data.payload)
@@ -73,6 +74,9 @@ export function AppShell() {
     } else if (data?.type === 'canvas-row') {
       setActiveRow(findRowInZone(draft[data.sourceZone], data.rowId))
       setActiveLeaf(null)
+    } else {
+      setActiveLeaf(null)
+      setActiveRow(null)
     }
   }
 

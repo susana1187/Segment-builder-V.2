@@ -1,11 +1,27 @@
-import type { CanvasZone, CanvasZoneKind, LogicOperator, SegmentDraft, SegmentRow } from '../types/segment'
+import type { CanvasItem, CanvasZone, CanvasZoneKind, LogicOperator, SegmentDraft, SegmentGroup, SegmentRow } from '../types/segment'
 import { createEmptyDraft } from '../data/initialDrafts'
 
-function insertRow(zone: CanvasZone, row: SegmentRow, targetGroupId?: string): CanvasZone {
+function operatorsFor(items: CanvasItem[], previousOperators: LogicOperator[]): LogicOperator[] {
+  return items.slice(1).map((_, i) => previousOperators[i] ?? 'or')
+}
+
+function removeGroup(zone: CanvasZone, groupId: string): { zone: CanvasZone; removed: SegmentGroup | null } {
+  const index = zone.items.findIndex((i) => i.kind === 'group' && i.id === groupId)
+  if (index === -1) return { zone, removed: null }
+  const removed = zone.items[index] as SegmentGroup
+  const items = zone.items.filter((_, i) => i !== index)
+  return { zone: { ...zone, items, operators: operatorsFor(items, zone.operators) }, removed }
+}
+
+// Drop target is explicit, not inferred from how many items happen to already be in the zone:
+//  - dropped directly on an existing group's card  -> join that group as a new child
+//  - dropped directly on an existing standalone row -> wrap both rows into a brand-new group
+//  - dropped on the surrounding dashed box (no specific rule under the pointer) -> always added
+//    as its own new standalone top-level rule, never auto-grouped
+function insertRow(zone: CanvasZone, row: SegmentRow, targetGroupId?: string, targetRowId?: string): CanvasZone {
   const items = [...zone.items]
   const operators = [...zone.operators]
 
-  // Drop directly onto an existing group -> append as a child row.
   if (targetGroupId) {
     const groupIndex = items.findIndex((i) => i.kind === 'group' && i.id === targetGroupId)
     if (groupIndex !== -1) {
@@ -14,26 +30,24 @@ function insertRow(zone: CanvasZone, row: SegmentRow, targetGroupId?: string): C
         const newGroup = { ...group, children: [...group.children, row], operators: [...group.operators, 'or' as const] }
         const newItems = [...items]
         newItems[groupIndex] = newGroup
-        return { ...zone, items: newItems }
+        return { ...zone, items: newItems, operators }
       }
     }
   }
 
-  // Empty zone -> single row.
-  if (items.length === 0) {
-    return { ...zone, items: [row], operators: [] }
+  if (targetRowId) {
+    const rowIndex = items.findIndex((i) => i.kind === 'row' && i.id === targetRowId)
+    if (rowIndex !== -1) {
+      const targetRow = items[rowIndex] as SegmentRow
+      const group = { id: `group-${Date.now()}`, kind: 'group' as const, children: [targetRow, row], operators: ['or' as const] }
+      const newItems = [...items]
+      newItems[rowIndex] = group
+      return { ...zone, items: newItems, operators }
+    }
   }
 
-  // Exactly one ungrouped row already -> wrap both into a new group.
-  if (items.length === 1 && items[0].kind === 'row') {
-    const group = { id: `group-${Date.now()}`, kind: 'group' as const, children: [items[0], row], operators: ['or' as const] }
-    return { ...zone, items: [group], operators: [] }
-  }
-
-  // Dropped on the zone itself (not a specific group) -> add as its own new top-level rule,
-  // joined to whatever's already there, rather than folding into an existing group.
+  if (items.length > 0) operators.push('or')
   items.push(row)
-  operators.push('or')
   return { ...zone, items, operators }
 }
 
@@ -82,7 +96,7 @@ export type SegmentAction =
   | { type: 'ADD_DRAFT' }
   | { type: 'DUPLICATE_DRAFT'; draftId: string }
   | { type: 'CLOSE_DRAFT'; draftId: string }
-  | { type: 'DROP_ITEM_IN_ZONE'; draftId: string; zone: CanvasZoneKind; row: SegmentRow; targetGroupId?: string }
+  | { type: 'DROP_ITEM_IN_ZONE'; draftId: string; zone: CanvasZoneKind; row: SegmentRow; targetGroupId?: string; targetRowId?: string }
   | {
       type: 'MOVE_ROW'
       draftId: string
@@ -90,9 +104,17 @@ export type SegmentAction =
       sourceZone: CanvasZoneKind
       targetZone: CanvasZoneKind
       targetGroupId?: string
+      targetRowId?: string
     }
   | { type: 'REMOVE_ROW'; draftId: string; zone: CanvasZoneKind; rowId: string }
   | { type: 'REMOVE_GROUP'; draftId: string; zone: CanvasZoneKind; groupId: string }
+  | {
+      type: 'MOVE_GROUP'
+      draftId: string
+      groupId: string
+      sourceZone: CanvasZoneKind
+      targetZone: CanvasZoneKind
+    }
   | { type: 'SET_ZONE_OPERATOR'; draftId: string; zone: CanvasZoneKind; index: number; operator: LogicOperator }
   | {
       type: 'SET_GROUP_OPERATOR'
@@ -147,7 +169,7 @@ export function segmentReducer(state: SegmentState, action: SegmentAction): Segm
     case 'DROP_ITEM_IN_ZONE': {
       return mapDraft(state, action.draftId, (draft) => ({
         ...draft,
-        [action.zone]: insertRow(draft[action.zone], action.row, action.targetGroupId),
+        [action.zone]: insertRow(draft[action.zone], action.row, action.targetGroupId, action.targetRowId),
       }))
     }
 
@@ -158,7 +180,7 @@ export function segmentReducer(state: SegmentState, action: SegmentAction): Segm
 
         const updated: SegmentDraft = { ...draft, [action.sourceZone]: sourceZoneAfterRemoval }
         const targetZoneData = action.targetZone === action.sourceZone ? sourceZoneAfterRemoval : draft[action.targetZone]
-        const newTargetZone = insertRow(targetZoneData, removed, action.targetGroupId)
+        const newTargetZone = insertRow(targetZoneData, removed, action.targetGroupId, action.targetRowId)
         return { ...updated, [action.targetZone]: newTargetZone }
       })
     }
@@ -175,6 +197,18 @@ export function segmentReducer(state: SegmentState, action: SegmentAction): Segm
         const zone = draft[action.zone]
         const items = zone.items.filter((i) => i.id !== action.groupId)
         return { ...draft, [action.zone]: { ...zone, items } }
+      })
+    }
+
+    case 'MOVE_GROUP': {
+      return mapDraft(state, action.draftId, (draft) => {
+        const { zone: sourceZoneAfterRemoval, removed } = removeGroup(draft[action.sourceZone], action.groupId)
+        if (!removed) return draft
+
+        const updated: SegmentDraft = { ...draft, [action.sourceZone]: sourceZoneAfterRemoval }
+        const targetZoneData = action.targetZone === action.sourceZone ? sourceZoneAfterRemoval : draft[action.targetZone]
+        const items = [...targetZoneData.items, removed]
+        return { ...updated, [action.targetZone]: { ...targetZoneData, items, operators: operatorsFor(items, targetZoneData.operators) } }
       })
     }
 
