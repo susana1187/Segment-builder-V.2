@@ -1,6 +1,5 @@
 import { useDroppable } from '@dnd-kit/core'
 import { useSortable } from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
 import Box from '@liveramp/motif/core/Box'
 import IconButton from '@liveramp/motif/core/IconButton'
 import { Clear, DragIndicator } from '@liveramp/icons'
@@ -11,26 +10,27 @@ import { OrOperatorToggle } from './OrOperatorToggle'
 
 export function RuleGroupCard({ group, draftId, zone }: { group: SegmentGroup; draftId: string; zone: CanvasZoneKind }) {
   const { dispatch } = useSegment()
+  // No self-transform here: a DragOverlay ghost already follows the pointer for this drag, so
+  // applying useSortable's own transform to the original element too would move both at once.
   const {
     attributes,
     listeners,
     setNodeRef: setSortableRef,
-    transform,
-    transition,
     isDragging,
+    isOver: isOverSortable,
   } = useSortable({ id: group.id, data: { type: 'canvas-group', groupId: group.id, sourceZone: zone, zone } })
-  const { setNodeRef: setDroppableRef, isOver } = useDroppable({
+  const { setNodeRef: setDroppableRef, isOver: isOverDroppable } = useDroppable({
     id: `group-${group.id}`,
     data: { type: 'group', groupId: group.id, zone },
     disabled: isDragging,
   })
+  // The group is both a sortable (whole-card drag/drop) and its own fold-target droppable;
+  // depending on which nested rect collision detection resolves to, either hook's `isOver`
+  // may be the one that fires, so the highlight has to watch both.
+  const isOver = isOverSortable || isOverDroppable
 
   return (
-    <Box
-      ref={setSortableRef}
-      style={{ transform: CSS.Transform.toString(transform), transition }}
-      sx={{ opacity: isDragging ? 0.4 : 1 }}
-    >
+    <Box ref={setSortableRef} sx={{ opacity: isDragging ? 0.4 : 1 }}>
       <Box
         ref={setDroppableRef}
         sx={{

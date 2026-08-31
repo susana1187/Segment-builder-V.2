@@ -16,7 +16,7 @@ import { useActiveDraft, useSegment } from './SegmentContext'
 import { resolveDrop } from './dndHandlers'
 import { catalogTree } from '../data/catalogTree'
 import type { CatalogLeaf } from '../types/catalog'
-import type { CanvasZone, SegmentRow } from '../types/segment'
+import type { CanvasZone, SegmentGroup, SegmentRow } from '../types/segment'
 import { IconRail } from '../components/shell/IconRail'
 import { Header } from '../components/shell/Header'
 import { CatalogTree } from '../components/catalog/CatalogTree'
@@ -54,11 +54,16 @@ function findRowInZone(zone: CanvasZone, rowId: string): SegmentRow | null {
   return null
 }
 
+function findGroupInZone(zone: CanvasZone, groupId: string): SegmentGroup | null {
+  return zone.items.find((item): item is SegmentGroup => item.kind === 'group' && item.id === groupId) ?? null
+}
+
 export function AppShell() {
   const { state, dispatch } = useSegment()
   const draft = useActiveDraft()
   const [activeLeaf, setActiveLeaf] = useState<CatalogLeaf | null>(null)
   const [activeRow, setActiveRow] = useState<SegmentRow | null>(null)
+  const [activeGroup, setActiveGroup] = useState<SegmentGroup | null>(null)
   const [hoveredLeaf, setHoveredLeaf] = useState<CatalogLeaf | null>(null)
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }))
 
@@ -68,21 +73,15 @@ export function AppShell() {
       | { type: 'canvas-row'; rowId: string; sourceZone: 'include' | 'exclude' }
       | { type: 'canvas-group'; groupId: string; sourceZone: 'include' | 'exclude' }
       | undefined
-    if (data?.type === 'catalog-item') {
-      setActiveLeaf(data.payload)
-      setActiveRow(null)
-    } else if (data?.type === 'canvas-row') {
-      setActiveRow(findRowInZone(draft[data.sourceZone], data.rowId))
-      setActiveLeaf(null)
-    } else {
-      setActiveLeaf(null)
-      setActiveRow(null)
-    }
+    setActiveLeaf(data?.type === 'catalog-item' ? data.payload : null)
+    setActiveRow(data?.type === 'canvas-row' ? findRowInZone(draft[data.sourceZone], data.rowId) : null)
+    setActiveGroup(data?.type === 'canvas-group' ? findGroupInZone(draft[data.sourceZone], data.groupId) : null)
   }
 
   function handleDragEnd(event: DragEndEvent) {
     setActiveLeaf(null)
     setActiveRow(null)
+    setActiveGroup(null)
     const action = resolveDrop(event, state.activeDraftId)
     if (action) dispatch(action)
   }
@@ -138,6 +137,17 @@ export function AppShell() {
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', borderRadius: 1, px: 1.5, py: 1, boxShadow: 3 }}>
             <CatalogLeafIcon type={activeRow.type} />
             <Box component="span" sx={{ fontSize: 14, fontWeight: 600 }}>{activeRow.title}</Box>
+          </Box>
+        )}
+        {activeGroup && (
+          <Box sx={{ bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', borderRadius: 1, px: 1.5, py: 1, boxShadow: 3 }}>
+            <Box sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary', letterSpacing: 0.5, mb: 0.5 }}>RULE GROUP</Box>
+            {activeGroup.children.map((row) => (
+              <Box key={row.id} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <CatalogLeafIcon type={row.type} />
+                <Box component="span" sx={{ fontSize: 14, fontWeight: 600 }}>{row.title}</Box>
+              </Box>
+            ))}
           </Box>
         )}
       </DragOverlay>

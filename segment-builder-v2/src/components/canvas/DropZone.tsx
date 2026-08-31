@@ -1,6 +1,5 @@
 import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
 import Box from '@liveramp/motif/core/Box'
 import Chip from '@liveramp/motif/core/Chip'
 import type { CanvasZoneKind, SegmentDraft, SegmentRow } from '../../types/segment'
@@ -15,7 +14,9 @@ const ZONE_COLOR: Record<CanvasZoneKind, { border: string; chipBg: string; chipC
 }
 
 function TopLevelRow({ row, zone, onRemove }: { row: SegmentRow; zone: CanvasZoneKind; onRemove: () => void }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging, isOver } = useSortable({
+  // No self-transform here: a DragOverlay ghost already follows the pointer for this drag, so
+  // applying useSortable's own transform to the original element too would move both at once.
+  const { attributes, listeners, setNodeRef, isDragging, isOver } = useSortable({
     id: row.id,
     data: { type: 'canvas-row', rowId: row.id, sourceZone: zone, zone },
   })
@@ -25,7 +26,6 @@ function TopLevelRow({ row, zone, onRemove }: { row: SegmentRow; zone: CanvasZon
       row={row}
       onRemove={onRemove}
       containerRef={setNodeRef}
-      style={{ transform: CSS.Transform.toString(transform), transition }}
       handleAttributes={attributes}
       handleListeners={listeners}
       isDragging={isDragging}
