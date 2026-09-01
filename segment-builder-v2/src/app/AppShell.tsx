@@ -128,7 +128,7 @@ export function AppShell() {
                   placeholder="Search assets"
                   value={catalogQuery}
                   onChange={(e) => setCatalogQuery(e.target.value)}
-                  InputProps={{ endAdornment: <Search sx={{ fontSize: 18, color: 'text.disabled', ml: 0.5 }} /> }}
+                  InputProps={{ endAdornment: <Search sx={{ fontSize: 24, color: 'text.disabled', ml: 1 }} /> }}
                 />
               </Box>
               {catalogQuery.trim() && filteredCatalog.length === 0 ? (
