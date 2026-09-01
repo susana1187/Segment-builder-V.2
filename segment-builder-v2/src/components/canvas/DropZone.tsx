@@ -13,12 +13,23 @@ const ZONE_COLOR: Record<CanvasZoneKind, { border: string; chipBg: string; chipC
   exclude: { border: '#e05a5a', chipBg: '#fbeaea', chipColor: '#b83a3a' },
 }
 
-function TopLevelRow({ row, zone, onRemove }: { row: SegmentRow; zone: CanvasZoneKind; onRemove: () => void }) {
+function TopLevelRow({
+  row,
+  zone,
+  disabled,
+  onRemove,
+}: {
+  row: SegmentRow
+  zone: CanvasZoneKind
+  disabled?: boolean
+  onRemove: () => void
+}) {
   // No self-transform here: a DragOverlay ghost already follows the pointer for this drag, so
   // applying useSortable's own transform to the original element too would move both at once.
   const { attributes, listeners, setNodeRef, isDragging, isOver } = useSortable({
     id: row.id,
     data: { type: 'canvas-row', rowId: row.id, sourceZone: zone, zone },
+    disabled: disabled ? { droppable: true } : undefined,
   })
 
   return (
@@ -34,16 +45,16 @@ function TopLevelRow({ row, zone, onRemove }: { row: SegmentRow; zone: CanvasZon
   )
 }
 
-export function DropZone({ draft, zone }: { draft: SegmentDraft; zone: CanvasZoneKind }) {
+export function DropZone({ draft, zone, disabled }: { draft: SegmentDraft; zone: CanvasZoneKind; disabled?: boolean }) {
   const { dispatch } = useSegment()
   const zoneData = draft[zone]
   const isEmpty = zoneData.items.length === 0
   const colors = ZONE_COLOR[zone]
 
-  const { setNodeRef, isOver } = useDroppable({ id: `${zone}-zone`, data: { type: 'zone', zone } })
+  const { setNodeRef, isOver } = useDroppable({ id: `${zone}-zone`, data: { type: 'zone', zone }, disabled })
 
   return (
-    <Box sx={{ mb: 3 }}>
+    <Box sx={{ mb: 3, opacity: disabled ? 0.5 : 1 }}>
       <Chip
         label={zone === 'include' ? 'Include' : 'Exclude'}
         size="small"
@@ -58,8 +69,12 @@ export function DropZone({ draft, zone }: { draft: SegmentDraft; zone: CanvasZon
           p: isEmpty ? 0 : 2,
           minHeight: 56,
           bgcolor: isOver ? colors.chipBg : 'transparent',
+          cursor: disabled ? 'not-allowed' : undefined,
         }}
       >
+        {disabled && isEmpty && (
+          <Box sx={{ px: 2, py: 2, fontSize: 13, color: 'text.secondary' }}>Add an Include rule first</Box>
+        )}
         <SortableContext items={zoneData.items.map((item) => item.id)} strategy={verticalListSortingStrategy}>
           {zoneData.items.map((item, index) => (
             <Box key={item.id}>
@@ -70,11 +85,12 @@ export function DropZone({ draft, zone }: { draft: SegmentDraft; zone: CanvasZon
                 />
               )}
               {item.kind === 'group' ? (
-                <RuleGroupCard group={item} draftId={draft.id} zone={zone} />
+                <RuleGroupCard group={item} draftId={draft.id} zone={zone} disabled={disabled} />
               ) : (
                 <TopLevelRow
                   row={item}
                   zone={zone}
+                  disabled={disabled}
                   onRemove={() => dispatch({ type: 'REMOVE_ROW', draftId: draft.id, zone, rowId: item.id })}
                 />
               )}

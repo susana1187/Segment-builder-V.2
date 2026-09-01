@@ -8,7 +8,17 @@ import { useSegment } from '../../app/SegmentContext'
 import { RuleRow } from './RuleRow'
 import { OrOperatorToggle } from './OrOperatorToggle'
 
-export function RuleGroupCard({ group, draftId, zone }: { group: SegmentGroup; draftId: string; zone: CanvasZoneKind }) {
+export function RuleGroupCard({
+  group,
+  draftId,
+  zone,
+  disabled,
+}: {
+  group: SegmentGroup
+  draftId: string
+  zone: CanvasZoneKind
+  disabled?: boolean
+}) {
   const { dispatch } = useSegment()
   // No self-transform here: a DragOverlay ghost already follows the pointer for this drag, so
   // applying useSortable's own transform to the original element too would move both at once.
@@ -18,11 +28,15 @@ export function RuleGroupCard({ group, draftId, zone }: { group: SegmentGroup; d
     setNodeRef: setSortableRef,
     isDragging,
     isOver: isOverSortable,
-  } = useSortable({ id: group.id, data: { type: 'canvas-group', groupId: group.id, sourceZone: zone, zone } })
+  } = useSortable({
+    id: group.id,
+    data: { type: 'canvas-group', groupId: group.id, sourceZone: zone, zone },
+    disabled: disabled ? { droppable: true } : undefined,
+  })
   const { setNodeRef: setDroppableRef, isOver: isOverDroppable } = useDroppable({
     id: `group-${group.id}`,
     data: { type: 'group', groupId: group.id, zone },
-    disabled: isDragging,
+    disabled: isDragging || disabled,
   })
   // The group is both a sortable (whole-card drag/drop) and its own fold-target droppable;
   // depending on which nested rect collision detection resolves to, either hook's `isOver`

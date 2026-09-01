@@ -10,11 +10,14 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from '@dnd-kit/core'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import Box from '@liveramp/motif/core/Box'
+import TextField from '@liveramp/motif/core/TextField'
+import { Search } from '@liveramp/icons'
 import { useActiveDraft, useSegment } from './SegmentContext'
 import { resolveDrop } from './dndHandlers'
 import { catalogTree } from '../data/catalogTree'
+import { filterCatalogTree } from '../utils/catalogSearch'
 import type { CatalogLeaf } from '../types/catalog'
 import type { CanvasZone, SegmentGroup, SegmentRow } from '../types/segment'
 import { IconRail } from '../components/shell/IconRail'
@@ -65,6 +68,8 @@ export function AppShell() {
   const [activeRow, setActiveRow] = useState<SegmentRow | null>(null)
   const [activeGroup, setActiveGroup] = useState<SegmentGroup | null>(null)
   const [hoveredLeaf, setHoveredLeaf] = useState<CatalogLeaf | null>(null)
+  const [catalogQuery, setCatalogQuery] = useState('')
+  const filteredCatalog = useMemo(() => filterCatalogTree(catalogTree, catalogQuery), [catalogQuery])
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }))
 
   function handleDragStart(event: DragStartEvent) {
@@ -116,7 +121,26 @@ export function AppShell() {
               <Box sx={{ px: 2, py: 1.5, fontSize: 12, fontWeight: 700, color: 'text.secondary', letterSpacing: 0.5 }}>
                 DATA CATALOG ASSETS
               </Box>
-              <CatalogTree nodes={catalogTree} onHoverLeaf={setHoveredLeaf} />
+              <Box sx={{ px: 2, pb: 1.5 }}>
+                <TextField
+                  size="small"
+                  fullWidth
+                  placeholder="Search assets"
+                  value={catalogQuery}
+                  onChange={(e) => setCatalogQuery(e.target.value)}
+                  InputProps={{ endAdornment: <Search sx={{ fontSize: 18, color: 'text.disabled', ml: 0.5 }} /> }}
+                />
+              </Box>
+              {catalogQuery.trim() && filteredCatalog.length === 0 ? (
+                <Box sx={{ px: 2, py: 1, fontSize: 13, color: 'text.secondary' }}>No assets match "{catalogQuery.trim()}"</Box>
+              ) : (
+                <CatalogTree
+                  nodes={filteredCatalog}
+                  onHoverLeaf={setHoveredLeaf}
+                  expandAll={!!catalogQuery.trim()}
+                  query={catalogQuery}
+                />
+              )}
             </Box>
             <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, minWidth: 0, position: 'relative' }}>
               <CanvasArea />
