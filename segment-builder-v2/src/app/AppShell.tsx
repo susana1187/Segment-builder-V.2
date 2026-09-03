@@ -25,7 +25,7 @@ import { Header } from '../components/shell/Header'
 import { CatalogTree } from '../components/catalog/CatalogTree'
 import { AssetInfoPanel } from '../components/catalog/AssetInfoPanel'
 import { CatalogLeafIcon } from '../components/catalog/catalogIcons'
-import { DraftTabs, SegmentNameField, DraftDetailsButton, AskAgentButton } from '../components/draft/DraftChrome'
+import { DraftTabs, DraftDetailsButton, AskAgentButton } from '../components/draft/DraftChrome'
 import { CanvasArea } from '../components/canvas/CanvasArea'
 import { FooterStatsBar } from '../components/footer/FooterStatsBar'
 
@@ -105,7 +105,14 @@ export function AppShell() {
             <Header />
             <Box sx={{ display: 'flex', alignItems: 'flex-end' }}>
               <Box sx={{ width: 280, flexShrink: 0, px: 3, pb: 2 }}>
-                <SegmentNameField />
+                <TextField
+                  size="small"
+                  fullWidth
+                  placeholder="Search assets"
+                  value={catalogQuery}
+                  onChange={(e) => setCatalogQuery(e.target.value)}
+                  InputProps={{ endAdornment: <Search sx={{ fontSize: 24, color: 'text.disabled', ml: 1 }} /> }}
+                />
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexGrow: 1, px: 3, gap: 2 }}>
                 <DraftTabs />
@@ -120,16 +127,6 @@ export function AppShell() {
             <Box sx={{ width: 280, borderRight: '1px solid', borderColor: 'divider', overflow: 'auto', flexShrink: 0 }}>
               <Box sx={{ px: 2, py: 1.5, fontSize: 12, fontWeight: 700, color: 'text.secondary', letterSpacing: 0.5 }}>
                 DATA CATALOG ASSETS
-              </Box>
-              <Box sx={{ px: 2, pb: 1.5 }}>
-                <TextField
-                  size="small"
-                  fullWidth
-                  placeholder="Search assets"
-                  value={catalogQuery}
-                  onChange={(e) => setCatalogQuery(e.target.value)}
-                  InputProps={{ endAdornment: <Search sx={{ fontSize: 24, color: 'text.disabled', ml: 1 }} /> }}
-                />
               </Box>
               {catalogQuery.trim() && filteredCatalog.length === 0 ? (
                 <Box sx={{ px: 2, py: 1, fontSize: 13, color: 'text.secondary' }}>No assets match "{catalogQuery.trim()}"</Box>

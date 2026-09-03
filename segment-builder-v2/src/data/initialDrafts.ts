@@ -3,7 +3,6 @@ import type { SegmentDraft } from '../types/segment'
 export function createEmptyDraft(id: string, label: string): SegmentDraft {
   return {
     id,
-    name: '',
     label,
     include: { kind: 'include', items: [], operators: [] },
     exclude: { kind: 'exclude', items: [], operators: [] },

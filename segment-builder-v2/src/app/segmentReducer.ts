@@ -90,7 +90,6 @@ export interface SegmentState {
 }
 
 export type SegmentAction =
-  | { type: 'SET_SEGMENT_NAME'; draftId: string; name: string }
   | { type: 'RENAME_DRAFT'; draftId: string; label: string }
   | { type: 'SET_ACTIVE_DRAFT'; draftId: string }
   | { type: 'ADD_DRAFT' }
@@ -131,9 +130,6 @@ function mapDraft(state: SegmentState, draftId: string, fn: (d: SegmentDraft) =>
 
 export function segmentReducer(state: SegmentState, action: SegmentAction): SegmentState {
   switch (action.type) {
-    case 'SET_SEGMENT_NAME':
-      return mapDraft(state, action.draftId, (d) => ({ ...d, name: action.name }))
-
     case 'RENAME_DRAFT':
       return mapDraft(state, action.draftId, (d) => ({ ...d, label: action.label }))
 

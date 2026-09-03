@@ -1,28 +1,11 @@
 import { useState } from 'react'
 import Box from '@liveramp/motif/core/Box'
-import TextField from '@liveramp/motif/core/TextField'
 import Tabs from '@liveramp/motif/core/Tabs'
 import Tab from '@liveramp/motif/core/Tab'
 import Button from '@liveramp/motif/core/Button'
 import { AutoAwesome, Add, BarChart, Clear } from '@liveramp/icons'
 import { useActiveDraft, useSegment } from '../../app/SegmentContext'
 import type { SegmentDraft } from '../../types/segment'
-
-export function SegmentNameField() {
-  const { state, dispatch } = useSegment()
-  const draft = state.drafts.find((d) => d.id === state.activeDraftId)!
-
-  return (
-    <TextField
-      label="Segment Name"
-      required
-      size="small"
-      value={draft.name}
-      onChange={(e) => dispatch({ type: 'SET_SEGMENT_NAME', draftId: draft.id, name: e.target.value })}
-      sx={{ width: 280 }}
-    />
-  )
-}
 
 function DraftTabLabel({ draft, closable }: { draft: SegmentDraft; closable: boolean }) {
   const { dispatch } = useSegment()

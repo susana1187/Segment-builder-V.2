@@ -38,7 +38,6 @@ export interface CanvasZone {
 
 export interface SegmentDraft {
   id: string
-  name: string
   label: string
   include: CanvasZone
   exclude: CanvasZone
