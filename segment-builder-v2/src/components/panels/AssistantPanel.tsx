@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import Box from '@liveramp/motif/core/Box'
 import IconButton from '@liveramp/motif/core/IconButton'
-import { AutoAwesome, History, Build, DataSet, ShoppingCart, ArrowUpward } from '@liveramp/icons'
-import { SidePanel } from './SidePanel'
+import { AutoAwesome, History, Build, DataSet, ShoppingCart, ArrowUpward, Clear } from '@liveramp/icons'
 
 interface ChatMessage {
   id: string
@@ -56,12 +55,32 @@ export function AssistantPanel({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <SidePanel icon={<AutoAwesome sx={{ fontSize: 20, color: '#7c3aed' }} />} title="AI Assistant" headerBg="#ede7fb" onClose={onClose}>
-      <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-        <Box sx={{ flexGrow: 1, overflow: 'auto', p: 3 }}>
+    <Box
+      sx={{
+        width: 344,
+        flexShrink: 0,
+        bgcolor: 'background.paper',
+        borderRight: '1px solid',
+        borderColor: 'divider',
+        boxShadow: 3,
+        display: 'flex',
+        flexDirection: 'column',
+        zIndex: 11,
+      }}
+    >
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', px: 1.5, pt: 1.5, flexShrink: 0 }}>
+        <IconButton size="small" aria-label="Close panel" onClick={onClose}>
+          <Clear sx={{ fontSize: 18 }} />
+        </IconButton>
+      </Box>
+      <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, minHeight: 0 }}>
+        <Box sx={{ flexGrow: 1, overflow: 'auto', px: 3, pb: 3 }}>
           {messages.length === 0 ? (
             <>
-              <Box sx={{ fontSize: 18, fontWeight: 700, mb: 1 }}>How can I help you today?</Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                <AutoAwesome sx={{ fontSize: 20, color: '#7c3aed' }} />
+                <Box sx={{ fontSize: 18, fontWeight: 700 }}>How can I help you today?</Box>
+              </Box>
               <Box sx={{ fontSize: 14, color: 'text.secondary', mb: 2.5 }}>
                 I'm your segment strategy assistant. Ask me anything about building audiences.
               </Box>
@@ -172,6 +191,6 @@ export function AssistantPanel({ onClose }: { onClose: () => void }) {
           )}
         </Box>
       </Box>
-    </SidePanel>
+    </Box>
   )
 }

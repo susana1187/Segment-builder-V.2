@@ -3,8 +3,8 @@ import Box from '@liveramp/motif/core/Box'
 import Tabs from '@liveramp/motif/core/Tabs'
 import Tab from '@liveramp/motif/core/Tab'
 import Button from '@liveramp/motif/core/Button'
-import { AutoAwesome, Add, BarChart, Clear } from '@liveramp/icons'
-import { useActiveDraft, useSegment } from '../../app/SegmentContext'
+import { Add, Clear } from '@liveramp/icons'
+import { useSegment } from '../../app/SegmentContext'
 import type { SegmentDraft } from '../../types/segment'
 
 function DraftTabLabel({ draft, closable }: { draft: SegmentDraft; closable: boolean }) {
@@ -112,43 +112,5 @@ export function DraftTabs() {
         Duplicate Draft
       </Button>
     </Box>
-  )
-}
-
-export function DraftDetailsButton({ active, onClick }: { active?: boolean; onClick?: () => void }) {
-  const draft = useActiveDraft()
-  const hasContent = draft.include.items.length > 0 || draft.exclude.items.length > 0
-
-  return (
-    <Button
-      variant={active ? 'contained' : 'outlined'}
-      size="small"
-      disabled={!hasContent}
-      startIcon={<BarChart sx={{ fontSize: 16 }} />}
-      onClick={onClick}
-      sx={active ? { bgcolor: '#e4f9ec', color: '#1a8f4e', border: 'none', boxShadow: 'none', '&:hover': { bgcolor: '#d3f2df', border: 'none', boxShadow: 'none' } } : undefined}
-    >
-      Draft Segment Details
-    </Button>
-  )
-}
-
-export function AskAgentButton({ active, onClick }: { active?: boolean; onClick?: () => void }) {
-  return (
-    <Button
-      variant="contained"
-      size="small"
-      startIcon={<AutoAwesome sx={{ fontSize: 16 }} />}
-      onClick={onClick}
-      sx={{
-        bgcolor: active ? '#ddd2f7' : '#ede7fb',
-        color: '#4a2f9c',
-        border: 'none',
-        boxShadow: 'none',
-        '&:hover': { bgcolor: '#ddd2f7', border: 'none', boxShadow: 'none' },
-      }}
-    >
-      Ask Agent
-    </Button>
   )
 }

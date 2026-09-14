@@ -12,8 +12,11 @@ import {
 } from '@dnd-kit/core'
 import { useMemo, useState } from 'react'
 import Box from '@liveramp/motif/core/Box'
+import Typography from '@liveramp/motif/core/Typography'
 import TextField from '@liveramp/motif/core/TextField'
-import { Search } from '@liveramp/icons'
+import IconButton from '@liveramp/motif/core/IconButton'
+import Button from '@liveramp/motif/core/Button'
+import { Search, AutoAwesome, BarChart } from '@liveramp/icons'
 import { useActiveDraft, useSegment } from './SegmentContext'
 import { resolveDrop } from './dndHandlers'
 import { catalogTree } from '../data/catalogTree'
@@ -25,7 +28,7 @@ import { Header } from '../components/shell/Header'
 import { CatalogTree } from '../components/catalog/CatalogTree'
 import { AssetInfoPanel } from '../components/catalog/AssetInfoPanel'
 import { CatalogLeafIcon } from '../components/catalog/catalogIcons'
-import { DraftTabs, DraftDetailsButton, AskAgentButton } from '../components/draft/DraftChrome'
+import { DraftTabs } from '../components/draft/DraftChrome'
 import { CanvasArea } from '../components/canvas/CanvasArea'
 import { FooterStatsBar } from '../components/footer/FooterStatsBar'
 import { InsightsPanel } from '../components/panels/InsightsPanel'
@@ -107,54 +110,80 @@ export function AppShell() {
           <Box sx={{ position: 'relative', zIndex: 1, boxShadow: '0 2px 4px rgba(0,0,0,0.06)' }}>
             <Header />
             <Box sx={{ display: 'flex', alignItems: 'flex-end' }}>
-              <Box sx={{ width: 280, flexShrink: 0, px: 3, pb: 2 }}>
-                <TextField
-                  size="small"
-                  fullWidth
-                  placeholder="Search assets"
-                  value={catalogQuery}
-                  onChange={(e) => setCatalogQuery(e.target.value)}
-                  InputProps={{ endAdornment: <Search sx={{ fontSize: 24, color: 'text.disabled', ml: 1 }} /> }}
-                />
+              <Box sx={{ width: 344, flexShrink: 0, px: 3, py: 0.75 }}>
+                <Typography sx={{ fontFamily: "'LiveRamp Sans', sans-serif", fontSize: 32, fontWeight: 500, lineHeight: 1, position: 'relative', top: -24 }}>
+                  Segment Builder
+                </Typography>
               </Box>
-              <Box sx={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexGrow: 1, px: 3, gap: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'flex-end', flexGrow: 1, px: 3, gap: 2, py: 0.75, position: 'relative', top: 6 }}>
                 <DraftTabs />
-                <Box sx={{ display: 'flex', gap: 1, pb: 2 }}>
-                  <DraftDetailsButton
-                    active={activePanel === 'insights'}
-                    onClick={() => setActivePanel((p) => (p === 'insights' ? null : 'insights'))}
-                  />
-                  <AskAgentButton
-                    active={activePanel === 'assistant'}
-                    onClick={() => setActivePanel((p) => (p === 'assistant' ? null : 'assistant'))}
-                  />
-                </Box>
               </Box>
             </Box>
           </Box>
           <Box sx={{ display: 'flex', flexGrow: 1, minHeight: 0 }}>
-            <Box sx={{ width: 280, borderRight: '1px solid', borderColor: 'divider', overflow: 'auto', flexShrink: 0 }}>
-              <Box sx={{ px: 2, py: 1.5, fontSize: 12, fontWeight: 700, color: 'text.secondary', letterSpacing: 0.5 }}>
-                DATA CATALOG ASSETS
+            {activePanel === 'assistant' ? (
+              <AssistantPanel onClose={() => setActivePanel(null)} />
+            ) : (
+              <Box sx={{ width: 344, borderRight: "1px solid", borderColor: "divider", overflow: "auto", flexShrink: 0 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 2, py: 1.5 }}>
+                  <Box sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary', letterSpacing: 0.5 }}>
+                    DATA CATALOG ASSETS
+                  </Box>
+                  <IconButton
+                    size="small"
+                    aria-label="Ask Agent"
+                    onClick={() => setActivePanel('assistant')}
+                    sx={{ bgcolor: '#ede7fb', color: '#4a2f9c', '&:hover': { bgcolor: '#ddd2f7' } }}
+                  >
+                    <AutoAwesome sx={{ fontSize: 16 }} />
+                  </IconButton>
+                </Box>
+                <Box sx={{ px: 2, pb: 1.5 }}>
+                  <TextField
+                    size="small"
+                    fullWidth
+                    placeholder="Search assets"
+                    value={catalogQuery}
+                    onChange={(e) => setCatalogQuery(e.target.value)}
+                    InputProps={{ endAdornment: <Search sx={{ fontSize: 24, color: 'text.disabled', ml: 1 }} /> }}
+                  />
+                </Box>
+                {catalogQuery.trim() && filteredCatalog.length === 0 ? (
+                  <Box sx={{ px: 2, py: 1, fontSize: 13, color: 'text.secondary' }}>No assets match "{catalogQuery.trim()}"</Box>
+                ) : (
+                  <CatalogTree
+                    nodes={filteredCatalog}
+                    onHoverLeaf={setHoveredLeaf}
+                    expandAll={!!catalogQuery.trim()}
+                    query={catalogQuery}
+                  />
+                )}
               </Box>
-              {catalogQuery.trim() && filteredCatalog.length === 0 ? (
-                <Box sx={{ px: 2, py: 1, fontSize: 13, color: 'text.secondary' }}>No assets match "{catalogQuery.trim()}"</Box>
-              ) : (
-                <CatalogTree
-                  nodes={filteredCatalog}
-                  onHoverLeaf={setHoveredLeaf}
-                  expandAll={!!catalogQuery.trim()}
-                  query={catalogQuery}
-                />
-              )}
-            </Box>
+            )}
             <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, minWidth: 0, position: 'relative' }}>
+              <Button
+                variant={activePanel === 'insights' ? 'contained' : 'outlined'}
+                size="small"
+                startIcon={<BarChart sx={{ fontSize: 16 }} />}
+                disabled={draft.include.items.length === 0 && draft.exclude.items.length === 0}
+                onClick={() => setActivePanel((p) => (p === 'insights' ? null : 'insights'))}
+                sx={{
+                  position: 'absolute',
+                  top: 12,
+                  right: 24,
+                  zIndex: 2,
+                  ...(activePanel === 'insights'
+                    ? { bgcolor: '#e4f9ec', color: '#1a8f4e', border: 'none', boxShadow: 'none', '&:hover': { bgcolor: '#d3f2df', border: 'none', boxShadow: 'none' } }
+                    : {}),
+                }}
+              >
+                Segment Details
+              </Button>
               <CanvasArea />
               <FooterStatsBar />
               {hoveredLeaf && <AssetInfoPanel leaf={hoveredLeaf} />}
             </Box>
             {activePanel === 'insights' && <InsightsPanel draft={draft} onClose={() => setActivePanel(null)} />}
-            {activePanel === 'assistant' && <AssistantPanel onClose={() => setActivePanel(null)} />}
           </Box>
         </Box>
       </Box>

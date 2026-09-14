@@ -6,8 +6,8 @@ import TextField from '@liveramp/motif/core/TextField'
 import Switch from '@liveramp/motif/core/Switch'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
-import { BarChart, Search, InfoOutline, ExpandMore } from '@liveramp/icons'
-import { SidePanel } from './SidePanel'
+import IconButton from '@liveramp/motif/core/IconButton'
+import { Search, InfoOutline, ExpandMore, Clear } from '@liveramp/icons'
 import type { SegmentDraft } from '../../types/segment'
 import { computeFooterStats } from '../../utils/stats'
 
@@ -254,19 +254,47 @@ export function InsightsPanel({ draft, onClose }: { draft: SegmentDraft; onClose
   const [tab, setTab] = useState<'details' | 'test' | 'overlaps' | 'lookalike'>('details')
 
   return (
-    <SidePanel icon={<BarChart sx={{ fontSize: 20 }} />} title="Draft Segment Insights" headerBg="#e4f9ec" onClose={onClose}>
-      <Box sx={{ borderBottom: '1px solid', borderColor: 'divider', position: 'sticky', top: 0, bgcolor: 'background.paper', zIndex: 1 }}>
-        <Tabs value={tab} onChange={(_, value) => setTab(value)} variant="scrollable">
+    <Box
+      sx={{
+        width: 580,
+        flexShrink: 0,
+        bgcolor: 'background.paper',
+        borderLeft: '1px solid',
+        borderColor: 'divider',
+        boxShadow: 3,
+        display: 'flex',
+        flexDirection: 'column',
+        zIndex: 11,
+      }}
+    >
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+          position: 'sticky',
+          top: 0,
+          bgcolor: 'background.paper',
+          zIndex: 1,
+        }}
+      >
+        <Tabs value={tab} onChange={(_, value) => setTab(value)} variant="scrollable" sx={{ flexGrow: 1 }}>
           <Tab value="details" label="Details" />
           <Tab value="test" label="Test and Control" />
           <Tab value="overlaps" label="Data Overlaps" />
           <Tab value="lookalike" label="Lookalike Modeling" />
         </Tabs>
+        <IconButton size="small" aria-label="Close panel" onClick={onClose} sx={{ mr: 1 }}>
+          <Clear sx={{ fontSize: 18 }} />
+        </IconButton>
       </Box>
-      {tab === 'details' && <DetailsTab />}
-      {tab === 'test' && <TestAndControlTab draft={draft} />}
-      {tab === 'overlaps' && <DataOverlapsTab draft={draft} />}
-      {tab === 'lookalike' && <LookalikeModelingTab draft={draft} />}
-    </SidePanel>
+      <Box sx={{ flexGrow: 1, overflow: 'auto', minHeight: 0, pb: 12 }}>
+        {tab === 'details' && <DetailsTab />}
+        {tab === 'test' && <TestAndControlTab draft={draft} />}
+        {tab === 'overlaps' && <DataOverlapsTab draft={draft} />}
+        {tab === 'lookalike' && <LookalikeModelingTab draft={draft} />}
+      </Box>
+    </Box>
   )
 }
