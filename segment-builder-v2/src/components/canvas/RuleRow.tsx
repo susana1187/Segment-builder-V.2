@@ -6,13 +6,18 @@ import Chip from '@liveramp/motif/core/Chip'
 import IconButton from '@liveramp/motif/core/IconButton'
 import { Clear, DragIndicator } from '@liveramp/icons'
 import type { CSSProperties } from 'react'
-import type { CanvasZoneKind, SegmentRow } from '../../types/segment'
+import type { CanvasZoneKind, RuleValueChip, SegmentRow } from '../../types/segment'
+import type { CatalogLeaf } from '../../types/catalog'
 import { CatalogLeafIcon } from '../catalog/catalogIcons'
 import { AttributeValueChips } from './AttributeValueChips'
+import { RuleAssetPicker } from './RuleAssetPicker'
 
 export function RuleRowContent({
   row,
   onRemove,
+  onOperatorChange,
+  onValuesChange,
+  onAssetChange,
   nested,
   handleRef,
   handleAttributes,
@@ -24,6 +29,9 @@ export function RuleRowContent({
 }: {
   row: SegmentRow
   onRemove: () => void
+  onOperatorChange?: (operator: string) => void
+  onValuesChange?: (values: RuleValueChip[]) => void
+  onAssetChange?: (leaf: CatalogLeaf) => void
   nested?: boolean
   handleRef?: (el: HTMLElement | null) => void
   handleAttributes?: DraggableAttributes
@@ -51,10 +59,14 @@ export function RuleRowContent({
           <DragIndicator sx={{ fontSize: 16, color: 'text.disabled' }} />
         </Box>
         <CatalogLeafIcon type={row.type} />
-        <Box component="span" sx={{ fontWeight: 600, fontSize: 14 }}>
-          {row.title}
-        </Box>
-        <AttributeValueChips operator={row.operator} values={row.values} />
+        <RuleAssetPicker title={row.title} currentId={row.sourceCatalogId} onSelect={onAssetChange ?? (() => {})} />
+        <AttributeValueChips
+          type={row.type}
+          operator={row.operator}
+          values={row.values}
+          onOperatorChange={onOperatorChange ?? (() => {})}
+          onValuesChange={onValuesChange ?? (() => {})}
+        />
         <Box sx={{ flexGrow: 1 }} />
         <IconButton size="small" aria-label="Remove" onClick={onRemove}>
           <Clear sx={{ fontSize: 16 }} />
@@ -75,11 +87,17 @@ export function RuleRow({
   row,
   zone,
   onRemove,
+  onOperatorChange,
+  onValuesChange,
+  onAssetChange,
   nested,
 }: {
   row: SegmentRow
   zone: CanvasZoneKind
   onRemove: () => void
+  onOperatorChange?: (operator: string) => void
+  onValuesChange?: (values: RuleValueChip[]) => void
+  onAssetChange?: (leaf: CatalogLeaf) => void
   nested?: boolean
 }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
@@ -91,6 +109,9 @@ export function RuleRow({
     <RuleRowContent
       row={row}
       onRemove={onRemove}
+      onOperatorChange={onOperatorChange}
+      onValuesChange={onValuesChange}
+      onAssetChange={onAssetChange}
       nested={nested}
       containerRef={setNodeRef}
       handleAttributes={attributes}

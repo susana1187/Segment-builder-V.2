@@ -1,17 +1,12 @@
 import type { DragEndEvent } from '@dnd-kit/core'
-import type { CanvasZoneKind, RuleValueChip, SegmentRow } from '../types/segment'
+import type { CanvasZoneKind, SegmentRow } from '../types/segment'
 import type { CatalogLeaf } from '../types/catalog'
 import type { SegmentAction } from './segmentReducer'
+import { defaultAttributeState } from '../utils/catalogRow'
 
 function catalogLeafToRow(leaf: CatalogLeaf): SegmentRow {
   const isAttribute = leaf.type.startsWith('attribute')
-  const values: RuleValueChip[] | undefined = isAttribute
-    ? [
-        { id: `${leaf.id}-v1`, label: '2' },
-        { id: `${leaf.id}-v2`, label: '3' },
-        { id: `${leaf.id}-v3`, label: '4' },
-      ]
-    : undefined
+  const attributeState = defaultAttributeState(leaf)
 
   return {
     id: `row-${leaf.id}-${Date.now()}`,
@@ -21,8 +16,8 @@ function catalogLeafToRow(leaf: CatalogLeaf): SegmentRow {
     type: leaf.type,
     title: leaf.label,
     meta: leaf.meta,
-    operator: isAttribute ? 'is equal to' : undefined,
-    values,
+    operator: attributeState?.operator,
+    values: attributeState?.values,
   }
 }
 

@@ -81,6 +81,9 @@ export function RuleGroupCard({
               zone={zone}
               nested
               onRemove={() => dispatch({ type: 'REMOVE_ROW', draftId, zone, rowId: row.id })}
+              onOperatorChange={(operator) => dispatch({ type: 'SET_ROW_OPERATOR', draftId, zone, rowId: row.id, operator })}
+              onValuesChange={(values) => dispatch({ type: 'SET_ROW_VALUES', draftId, zone, rowId: row.id, values })}
+              onAssetChange={(leaf) => dispatch({ type: 'SET_ROW_ASSET', draftId, zone, rowId: row.id, leaf })}
             />
           </Box>
         ))}

@@ -1,5 +1,15 @@
-import type { CanvasItem, CanvasZone, CanvasZoneKind, LogicOperator, SegmentDraft, SegmentGroup, SegmentRow } from '../types/segment'
+import type { CanvasItem, CanvasZone, CanvasZoneKind, LogicOperator, RuleValueChip, SegmentDraft, SegmentGroup, SegmentRow } from '../types/segment'
+import type { CatalogLeaf } from '../types/catalog'
 import { createEmptyDraft } from '../data/initialDrafts'
+import { defaultAttributeState } from '../utils/catalogRow'
+
+function updateRow(zone: CanvasZone, rowId: string, fn: (row: SegmentRow) => SegmentRow): CanvasZone {
+  const items = zone.items.map((item) => {
+    if (item.kind === 'row') return item.id === rowId ? fn(item) : item
+    return { ...item, children: item.children.map((row) => (row.id === rowId ? fn(row) : row)) }
+  })
+  return { ...zone, items }
+}
 
 function operatorsFor(items: CanvasItem[], previousOperators: LogicOperator[]): LogicOperator[] {
   return items.slice(1).map((_, i) => previousOperators[i] ?? 'or')
@@ -114,6 +124,9 @@ export type SegmentAction =
       sourceZone: CanvasZoneKind
       targetZone: CanvasZoneKind
     }
+  | { type: 'SET_ROW_OPERATOR'; draftId: string; zone: CanvasZoneKind; rowId: string; operator: string }
+  | { type: 'SET_ROW_VALUES'; draftId: string; zone: CanvasZoneKind; rowId: string; values: RuleValueChip[] }
+  | { type: 'SET_ROW_ASSET'; draftId: string; zone: CanvasZoneKind; rowId: string; leaf: CatalogLeaf }
   | { type: 'SET_ZONE_OPERATOR'; draftId: string; zone: CanvasZoneKind; index: number; operator: LogicOperator }
   | {
       type: 'SET_GROUP_OPERATOR'
@@ -206,6 +219,40 @@ export function segmentReducer(state: SegmentState, action: SegmentAction): Segm
         const items = [...targetZoneData.items, removed]
         return { ...updated, [action.targetZone]: { ...targetZoneData, items, operators: operatorsFor(items, targetZoneData.operators) } }
       })
+    }
+
+    case 'SET_ROW_OPERATOR': {
+      return mapDraft(state, action.draftId, (draft) => ({
+        ...draft,
+        [action.zone]: updateRow(draft[action.zone], action.rowId, (row) => ({ ...row, operator: action.operator })),
+      }))
+    }
+
+    case 'SET_ROW_VALUES': {
+      return mapDraft(state, action.draftId, (draft) => ({
+        ...draft,
+        [action.zone]: updateRow(draft[action.zone], action.rowId, (row) => ({ ...row, values: action.values })),
+      }))
+    }
+
+    case 'SET_ROW_ASSET': {
+      return mapDraft(state, action.draftId, (draft) => ({
+        ...draft,
+        [action.zone]: updateRow(draft[action.zone], action.rowId, (row) => {
+          const isAttribute = action.leaf.type.startsWith('attribute')
+          const attributeState = defaultAttributeState(action.leaf)
+          return {
+            ...row,
+            sourceCatalogId: action.leaf.id,
+            rowKind: isAttribute ? 'attribute' : 'asset',
+            type: action.leaf.type,
+            title: action.leaf.label,
+            meta: action.leaf.meta,
+            operator: attributeState?.operator,
+            values: attributeState?.values,
+          }
+        }),
+      }))
     }
 
     case 'SET_ZONE_OPERATOR': {

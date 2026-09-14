@@ -2,7 +2,8 @@ import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import Box from '@liveramp/motif/core/Box'
 import Chip from '@liveramp/motif/core/Chip'
-import type { CanvasZoneKind, SegmentDraft, SegmentRow } from '../../types/segment'
+import type { CanvasZoneKind, RuleValueChip, SegmentDraft, SegmentRow } from '../../types/segment'
+import type { CatalogLeaf } from '../../types/catalog'
 import { useSegment } from '../../app/SegmentContext'
 import { RuleGroupCard } from './RuleGroupCard'
 import { RuleRowContent } from './RuleRow'
@@ -18,11 +19,17 @@ function TopLevelRow({
   zone,
   disabled,
   onRemove,
+  onOperatorChange,
+  onValuesChange,
+  onAssetChange,
 }: {
   row: SegmentRow
   zone: CanvasZoneKind
   disabled?: boolean
   onRemove: () => void
+  onOperatorChange: (operator: string) => void
+  onValuesChange: (values: RuleValueChip[]) => void
+  onAssetChange: (leaf: CatalogLeaf) => void
 }) {
   // No self-transform here: a DragOverlay ghost already follows the pointer for this drag, so
   // applying useSortable's own transform to the original element too would move both at once.
@@ -36,6 +43,9 @@ function TopLevelRow({
     <RuleRowContent
       row={row}
       onRemove={onRemove}
+      onOperatorChange={onOperatorChange}
+      onValuesChange={onValuesChange}
+      onAssetChange={onAssetChange}
       containerRef={setNodeRef}
       handleAttributes={attributes}
       handleListeners={listeners}
@@ -92,6 +102,9 @@ export function DropZone({ draft, zone, disabled }: { draft: SegmentDraft; zone:
                   zone={zone}
                   disabled={disabled}
                   onRemove={() => dispatch({ type: 'REMOVE_ROW', draftId: draft.id, zone, rowId: item.id })}
+                  onOperatorChange={(operator) => dispatch({ type: 'SET_ROW_OPERATOR', draftId: draft.id, zone, rowId: item.id, operator })}
+                  onValuesChange={(values) => dispatch({ type: 'SET_ROW_VALUES', draftId: draft.id, zone, rowId: item.id, values })}
+                  onAssetChange={(leaf) => dispatch({ type: 'SET_ROW_ASSET', draftId: draft.id, zone, rowId: item.id, leaf })}
                 />
               )}
             </Box>
