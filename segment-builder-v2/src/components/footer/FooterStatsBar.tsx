@@ -21,6 +21,10 @@ export function FooterStatsBar() {
   return (
     <Box
       sx={{
+        position: 'fixed',
+        left: 56,
+        right: 0,
+        bottom: 0,
         display: 'flex',
         alignItems: 'center',
         gap: 4,
@@ -28,6 +32,8 @@ export function FooterStatsBar() {
         py: 2,
         borderTop: '1px solid',
         borderColor: 'divider',
+        bgcolor: 'background.paper',
+        zIndex: 10,
       }}
     >
       <IconButton size="small" aria-label="Refresh">

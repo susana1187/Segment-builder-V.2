@@ -115,25 +115,33 @@ export function DraftTabs() {
   )
 }
 
-export function DraftDetailsButton() {
+export function DraftDetailsButton({ active, onClick }: { active?: boolean; onClick?: () => void }) {
   const draft = useActiveDraft()
   const hasContent = draft.include.items.length > 0 || draft.exclude.items.length > 0
 
   return (
-    <Button variant="outlined" size="small" disabled={!hasContent} startIcon={<BarChart sx={{ fontSize: 16 }} />}>
+    <Button
+      variant={active ? 'contained' : 'outlined'}
+      size="small"
+      disabled={!hasContent}
+      startIcon={<BarChart sx={{ fontSize: 16 }} />}
+      onClick={onClick}
+      sx={active ? { bgcolor: '#e4f9ec', color: '#1a8f4e', border: 'none', boxShadow: 'none', '&:hover': { bgcolor: '#d3f2df', border: 'none', boxShadow: 'none' } } : undefined}
+    >
       Draft Segment Details
     </Button>
   )
 }
 
-export function AskAgentButton() {
+export function AskAgentButton({ active, onClick }: { active?: boolean; onClick?: () => void }) {
   return (
     <Button
       variant="contained"
       size="small"
       startIcon={<AutoAwesome sx={{ fontSize: 16 }} />}
+      onClick={onClick}
       sx={{
-        bgcolor: '#ede7fb',
+        bgcolor: active ? '#ddd2f7' : '#ede7fb',
         color: '#4a2f9c',
         border: 'none',
         boxShadow: 'none',

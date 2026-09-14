@@ -28,6 +28,8 @@ import { CatalogLeafIcon } from '../components/catalog/catalogIcons'
 import { DraftTabs, DraftDetailsButton, AskAgentButton } from '../components/draft/DraftChrome'
 import { CanvasArea } from '../components/canvas/CanvasArea'
 import { FooterStatsBar } from '../components/footer/FooterStatsBar'
+import { InsightsPanel } from '../components/panels/InsightsPanel'
+import { AssistantPanel } from '../components/panels/AssistantPanel'
 
 // Zone and group drop targets are nested (a group sits inside its zone), so a pointer over a
 // group is also technically over the zone. Prefer the smallest (most specific) matching rect so
@@ -69,6 +71,7 @@ export function AppShell() {
   const [activeGroup, setActiveGroup] = useState<SegmentGroup | null>(null)
   const [hoveredLeaf, setHoveredLeaf] = useState<CatalogLeaf | null>(null)
   const [catalogQuery, setCatalogQuery] = useState('')
+  const [activePanel, setActivePanel] = useState<'insights' | 'assistant' | null>(null)
   const filteredCatalog = useMemo(() => filterCatalogTree(catalogTree, catalogQuery), [catalogQuery])
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }))
 
@@ -117,8 +120,14 @@ export function AppShell() {
               <Box sx={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexGrow: 1, px: 3, gap: 2 }}>
                 <DraftTabs />
                 <Box sx={{ display: 'flex', gap: 1, pb: 2 }}>
-                  <DraftDetailsButton />
-                  <AskAgentButton />
+                  <DraftDetailsButton
+                    active={activePanel === 'insights'}
+                    onClick={() => setActivePanel((p) => (p === 'insights' ? null : 'insights'))}
+                  />
+                  <AskAgentButton
+                    active={activePanel === 'assistant'}
+                    onClick={() => setActivePanel((p) => (p === 'assistant' ? null : 'assistant'))}
+                  />
                 </Box>
               </Box>
             </Box>
@@ -144,6 +153,8 @@ export function AppShell() {
               <FooterStatsBar />
               {hoveredLeaf && <AssetInfoPanel leaf={hoveredLeaf} />}
             </Box>
+            {activePanel === 'insights' && <InsightsPanel draft={draft} onClose={() => setActivePanel(null)} />}
+            {activePanel === 'assistant' && <AssistantPanel onClose={() => setActivePanel(null)} />}
           </Box>
         </Box>
       </Box>
